@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2E6B3F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Golf cart">
+<title>Golf cart remote</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⛳%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #EEF3EE;
+    --surface: #FFFFFF;
+    --surface-2: #E2EBE3;
+    --text: #15241A;
+    --muted: #55665A;
+    --fairway: #2E6B3F;
+    --fairway-soft: rgba(46, 107, 63, 0.12);
+    --on-fairway: #FFFFFF;
+    --flag: #C8342B;
+    --on-flag: #FFFFFF;
+    --warn: #B26A00;
+    --line: rgba(21, 36, 26, 0.12);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0E1811;
+      --surface: #16231A;
+      --surface-2: #1E2F23;
+      --text: #E6EFE8;
+      --muted: #9DB0A2;
+      --fairway: #56A872;
+      --fairway-soft: rgba(86, 168, 114, 0.16);
+      --on-fairway: #08140C;
+      --flag: #E0483D;
+      --on-flag: #FFFFFF;
+      --warn: #F0A43A;
+      --line: rgba(230, 239, 232, 0.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0E1811;
+    --surface: #16231A;
+    --surface-2: #1E2F23;
+    --text: #E6EFE8;
+    --muted: #9DB0A2;
+    --fairway: #56A872;
+    --fairway-soft: rgba(86, 168, 114, 0.16);
+    --on-fairway: #08140C;
+    --flag: #E0483D;
+    --on-flag: #FFFFFF;
+    --warn: #F0A43A;
+    --line: rgba(230, 239, 232, 0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--fairway);
+    outline-offset: 2px;
+  }
+
+  .app {
+    height: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 {
+    margin: 0;
+    font-family: ui-rounded, system-ui, sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .icon-btn {
+    width: 44px; height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: var(--fairway-soft);
+    color: var(--fairway);
+    display: grid;
+    place-items: center;
+  }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  .status {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px 16px;
+  }
+  .status .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--warn);
+    flex: none;
+  }
+  .dot.on { background: var(--fairway); }
+  .batt { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .state {
+    margin: 8px 0 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .meta {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .connect {
+    border: none;
+    border-radius: 16px;
+    min-height: 56px;
+    background: var(--fairway);
+    color: var(--on-fairway);
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .connect:disabled { opacity: 0.45; cursor: default; }
+
+  .link-btn {
+    border: none;
+    background: none;
+    color: var(--fairway);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 4px;
+    margin-top: -6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .sim-wrap { display: grid; gap: 4px; }
+  .sim-wrap canvas {
+    width: 100%;
+    height: 170px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    touch-action: none;
+    display: block;
+  }
+  .sim-wrap p { margin: 0; font-size: 13px; color: var(--muted); }
+  body.practice .sim-wrap canvas { height: min(170px, 20vh); }
+  body.practice .joy { width: min(60vw, 240px, 30vh); }
+  body.practice .distance { font-size: 56px; }
+  body.practice .app { gap: 10px; }
+
+  .modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mode {
+    min-height: 52px;
+    border-radius: 14px;
+    border: 2px solid var(--fairway);
+    background: transparent;
+    color: var(--fairway);
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .mode[aria-pressed="true"] {
+    background: var(--fairway);
+    color: var(--on-fairway);
+  }
+  .mode:disabled { opacity: 0.4; cursor: default; }
+
+  .stage {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+  }
+  .hint {
+    max-width: 30ch;
+    text-align: center;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .joy {
+    position: relative;
+    width: min(72vw, 280px, 42vh);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, transparent 0 34%, var(--line) 34% calc(34% + 1px), transparent calc(34% + 1px)),
+      var(--fairway-soft);
+    border: 2px solid var(--fairway);
+    touch-action: none;
+  }
+  .joy::before {
+    content: "";
+    position: absolute;
+    left: calc(50% - 3px);
+    top: 14%;
+    bottom: 14%;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--line);
+  }
+  .joy .arrow {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--fairway);
+    opacity: 0.7;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .knob {
+    position: absolute;
+    width: 34%;
+    aspect-ratio: 1;
+    left: 33%;
+    top: 33%;
+    border-radius: 50%;
+    background: var(--fairway);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+  }
+  .knob.returning { transition: transform 0.2s cubic-bezier(.3, 1.4, .5, 1); }
+
+  .follow { text-align: center; }
+  .distance {
+    font-family: ui-rounded, system-ui, sans-serif;
+    font-size: 76px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .follow p { margin: 8px auto 0; max-width: 32ch; color: var(--muted); font-size: 15px; }
+  .follow .alert { color: var(--flag); font-weight: 600; }
+
+  .speed { display: grid; gap: 6px; font-size: 15px; font-weight: 600; }
+  .speed input { width: 100%; accent-color: var(--fairway); height: 32px; }
+
+  .stop {
+    border: none;
+    border-radius: 22px;
+    min-height: 88px;
+    background: var(--flag);
+    color: var(--on-flag);
+    font-family: ui-rounded, system-ui, sans-serif;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+  .stop:active { transform: scale(0.98); }
+
+  dialog {
+    width: min(92vw, 440px);
+    border: none;
+    border-radius: 20px;
+    padding: 20px;
+    background: var(--surface);
+    color: var(--text);
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+  dialog h2 { margin: 0 0 14px; font-size: 22px; }
+  dialog h3 { margin: 18px 0 8px; font-size: 16px; }
+  dialog p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+  .stepper {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface-2); border-radius: 14px; padding: 8px 10px;
+  }
+  .stepper span { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stepper div { display: flex; gap: 8px; }
+  .stepper button, .btn {
+    min-width: 44px; min-height: 44px;
+    border: none; border-radius: 12px;
+    background: var(--fairway-soft); color: var(--fairway);
+    font-weight: 700; font-size: 17px;
+  }
+  .btn { width: 100%; margin-top: 8px; padding: 0 14px; text-align: left; }
+  .btn.primary { background: var(--fairway); color: var(--on-fairway); text-align: center; margin-top: 20px; }
+  .heading { margin-top: 10px; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>Golf cart</h1>
+    <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <section class="status" aria-live="polite">
+    <div class="row">
+      <span class="dot" id="dot"></span>
+      <span id="connText">Not connected</span>
+      <span class="batt" id="batt" hidden></span>
+    </div>
+    <p class="state" id="stateText">Tap Connect to find your cart.</p>
+    <p class="meta" id="meta" hidden><span id="gpsText"></span><span id="voltText"></span></p>
+  </section>
+
+  <button class="connect" id="connectBtn">Connect to cart</button>
+  <button class="link-btn" id="practiceBtn">Practice without a cart</button>
+
+  <div class="sim-wrap" id="simWrap" hidden>
+    <canvas id="sim" aria-label="Practice map showing the pretend cart and you"></canvas>
+    <p>Practice map, north is up. In follow me, tap or drag on the map to move yourself.</p>
+  </div>
+
+  <div class="modes">
+    <button class="mode" id="manualBtn" aria-pressed="false" disabled>Manual</button>
+    <button class="mode" id="followBtn" aria-pressed="false" disabled>Follow me</button>
+  </div>
+
+  <section class="stage">
+    <p class="hint" id="hint">Turn on the cart, then tap Connect.</p>
+
+    <div class="joy" id="joy" hidden role="application" aria-label="Drive joystick. Drag up to go forward, sideways to turn.">
+      <span class="arrow" aria-hidden="true">▲</span>
+      <div class="knob" id="knob"></div>
+    </div>
+
+    <div class="follow" id="follow" hidden>
+      <div class="distance" id="distance">–</div>
+      <p id="followText">Waiting for both GPS signals.</p>
+      <p id="accText"></p>
+      <p>Keep this page open. The cart stops if the screen locks or you leave the page.</p>
+    </div>
+  </section>
+
+  <label class="speed">
+    <span>Top speed: <output id="speedOut">60%</output></span>
+    <input type="range" id="speed" min="20" max="100" step="5" value="60">
+  </label>
+
+  <button class="stop" id="stopBtn">Stop</button>
+</main>
+
+<dialog id="settings">
+  <h2>Settings</h2>
+
+  <h3>Follow distance</h3>
+  <div class="stepper">
+    <span id="fdText">5 m</span>
+    <div>
+      <button id="fdMinus" aria-label="Closer">−</button>
+      <button id="fdPlus" aria-label="Farther">+</button>
+    </div>
+  </div>
+  <p>How far behind you the cart waits. GPS is accurate to a few meters, so 4–6 m works best.</p>
+
+  <h3>Compass</h3>
+  <button class="btn" id="calBtn">Calibrate compass</button>
+  <button class="btn" id="northBtn">Set north</button>
+  <div class="heading" id="headingText"></div>
+  <p>To calibrate: tap Calibrate compass, drive the cart in two slow full circles in manual mode, then tap Finish calibration. To set north: point the cart at true north using the iPhone Compass app, then tap Set north. Do both once after mounting.</p>
+
+  <button class="btn" id="endPracticeBtn" hidden>End practice mode</button>
+  <button class="btn primary" id="doneBtn">Done</button>
+</dialog>
+
+<script>
+(() => {
+  // Must match the ESP32 firmware (lowercase for Web Bluetooth)
+  const SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+  const CMD     = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+  const STATUS  = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+
+  const $ = id => document.getElementById(id);
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  // ---------- saved settings (optional, survives reloads) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+  };
+
+  // ---------- state ----------
+  let device = null, cmdChar = null, connected = false;
+  let mode = 0;                         // 0 stop, 1 manual, 2 follow
+  let joy = { x: 0, y: 0 };
+  let speed = store.get("speed", 60);
+  let followDist = store.get("followDist", 5);
+  let status = null;
+  let lastModeChange = 0, lastGpsSent = 0, tick = 0;
+  let phonePos = null, geoWatch = null, geoError = "";
+  let calibrating = false;
+  let wakeLock = null;
+  let practice = false;     // pretend cart, no hardware
+  let manualYou = false;    // practice: "you" was placed by tapping the map
+
+  // ---------- pretend cart (practice mode) ----------
+  // Mirrors the ESP32 firmware: same commands, same status, same follow logic.
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const wrap360 = a => ((a % 360) + 360) % 360;
+  const wrap180 = a => { a = wrap360(a); return a > 180 ? a - 360 : a; };
+  const M_PER_DEG = 111320;
+
+  function mix(t, s) {
+    let l = t + s, r = t - s;
+    const m = Math.max(Math.abs(l), Math.abs(r));
+    if (m > 1) { l /= m; r /= m; }
+    return [l, r];
+  }
+
+  const SIM = {
+    maxMps: 1.5, track: 0.6, ramp: 1.5, manualSteer: 0.6,
+    hyst: 1.5, maxDist: 25, gain: 0.10, minSpd: 0.25, maxSpd: 0.70,
+    kp: 1 / 60, maxSteer: 0.5, turnDeg: 70, turnPow: 0.35, maxAcc: 15
+  };
+
+  const fake = {
+    reset() {
+      Object.assign(this, {
+        mode: 0, maxSpeed: 0.6, followDist: 5, thr: 0, str: 0,
+        lastDrive: 0, lastBeat: Date.now(), phone: null,
+        outL: 0, outR: 0, x: 0, y: -12, heading: 0,
+        placed: false, lat0: 0, lon0: 0, following: false,
+        info: "IDLE", dist: -1, cal: false
+      });
+    },
+    start() {
+      this.reset();
+      this.stepTimer = setInterval(() => this.step(0.02), 20);
+      this.statusTimer = setInterval(() => this.emit(), 500);
+    },
+    stop() { clearInterval(this.stepTimer); clearInterval(this.statusTimer); },
+
+    handle(text) {
+      this.lastBeat = Date.now();
+      const [c, ...a] = text.split(",");
+      switch (c) {
+        case "D": this.thr = clamp(+a[0], -100, 100) / 100; this.str = clamp(+a[1], -100, 100) / 100; this.lastDrive = Date.now(); break;
+        case "M": this.setMode(+a[0]); break;
+        case "E": this.setMode(0); break;
+        case "G":
+          this.phone = { lat: +a[0], lon: +a[1], acc: +a[2], time: Date.now() };
+          if (!this.placed) {   // drop the pretend cart 12 m south of you, facing north
+            this.lat0 = this.phone.lat; this.lon0 = this.phone.lon;
+            this.x = 0; this.y = -12; this.heading = 0; this.placed = true;
+          }
+          break;
+        case "S": this.maxSpeed = clamp(+a[0], 10, 100) / 100; break;
+        case "F": this.followDist = clamp(+a[0], 2, 15); break;
+        case "C": this.cal = a[0] === "1"; break;
+      }
+    },
+    setMode(m) {
+      this.mode = m; this.following = false; this.thr = this.str = 0;
+      if (m === 0) this.outL = this.outR = 0;
+    },
+    toLocal(lat, lon) {
+      return {
+        x: (lon - this.lon0) * M_PER_DEG * Math.cos(this.lat0 * Math.PI / 180),
+        y: (lat - this.lat0) * M_PER_DEG
+      };
+    },
+    toLatLon(x, y) {
+      return {
+        lat: this.lat0 + y / M_PER_DEG,
+        lon: this.lon0 + x / (M_PER_DEG * Math.cos(this.lat0 * Math.PI / 180))
+      };
+    },
+    youLocal() {
+      return this.placed && this.phone ? this.toLocal(this.phone.lat, this.phone.lon) : null;
+    },
+
+    step(dt) {
+      const now = Date.now();
+      const linkLost = now - this.lastBeat > 1500;
+      if (linkLost && this.mode !== 0) this.setMode(0);
+
+      const fresh = this.phone && now - this.phone.time < 3000;
+      const p = this.placed && fresh ? this.youLocal() : null;
+      this.dist = p ? Math.hypot(p.x - this.x, p.y - this.y) : -1;
+
+      let tl = 0, tr = 0;
+      if (this.mode === 1) {
+        if (now - this.lastDrive > 500) this.thr = this.str = 0;
+        [tl, tr] = mix(this.thr, this.str * SIM.manualSteer);
+        this.info = "MAN";
+      } else if (this.mode === 2) {
+        [tl, tr] = this.follow(p);
+      } else {
+        this.info = linkLost ? "NOLINK" : "IDLE";
+      }
+      if (this.cal) this.info = "CAL";
+
+      if (this.mode === 0) {
+        this.outL = this.outR = 0;
+      } else {
+        const s = SIM.ramp * dt;
+        this.outL += clamp(tl * this.maxSpeed - this.outL, -s, s);
+        this.outR += clamp(tr * this.maxSpeed - this.outR, -s, s);
+      }
+
+      // move: x = east, y = north, heading clockwise from north
+      const vl = this.outL * SIM.maxMps, vr = this.outR * SIM.maxMps;
+      const v = (vl + vr) / 2, w = (vl - vr) / SIM.track;
+      this.heading = wrap360(this.heading + w * 180 / Math.PI * dt);
+      const h = this.heading * Math.PI / 180;
+      this.x += v * Math.sin(h) * dt;
+      this.y += v * Math.cos(h) * dt;
+    },
+
+    follow(p) {
+      if (this.cal) { this.following = false; return [0, 0]; }
+      if (!p) { this.info = "NOPHN"; this.following = false; return [0, 0]; }
+      if (this.phone.acc > SIM.maxAcc) { this.info = "WEAK"; this.following = false; return [0, 0]; }
+      if (this.dist > SIM.maxDist) { this.info = "FAR"; this.following = false; return [0, 0]; }
+      if (!this.following && this.dist > this.followDist + SIM.hyst) this.following = true;
+      if (this.following && this.dist < this.followDist) this.following = false;
+      if (!this.following) { this.info = "WAIT"; return [0, 0]; }
+
+      const bearing = wrap360(Math.atan2(p.x - this.x, p.y - this.y) * 180 / Math.PI);
+      const err = wrap180(bearing - this.heading);
+      let spd = Math.min(SIM.maxSpd, SIM.minSpd + (this.dist - this.followDist) * SIM.gain);
+      let st = clamp(err * SIM.kp, -SIM.maxSteer, SIM.maxSteer);
+      if (Math.abs(err) > SIM.turnDeg) { spd = 0; st = Math.sign(err) * SIM.turnPow; this.info = "TURN"; }
+      else { spd *= 1 - Math.abs(err) / (SIM.turnDeg * 1.5); this.info = "GO"; }
+      return mix(spd, st);
+    },
+
+    emit() {
+      parseStatus(`ST,${this.mode},13.20,${this.placed ? 1 : 0},${this.placed ? 9 : 0},` +
+                  `${this.dist.toFixed(1)},${this.placed ? Math.round(this.heading) : -1},${this.info}`);
+    }
+  };
+
+  function startPractice() {
+    practice = true;
+    connected = true;
+    status = null;
+    mode = 0;
+    manualYou = false;
+    phonePos = null;
+    fake.start();
+    send(`S,${speed}`, true);
+    send(`F,${followDist}`, true);
+    setConnText("Practice mode, no cart");
+    render();
+    requestAnimationFrame(drawSim);
+  }
+
+  function endPractice() {
+    fake.stop();
+    practice = false;
+    connected = false;
+    status = null;
+    mode = 0;
+    manualYou = false;
+    phonePos = null;
+    resetJoy();
+    setConnText("Not connected");
+    render();
+  }
+
+  // ---------- practice map ----------
+  const simCanvas = document.getElementById("sim");
+  let view = { cx: 0, cy: -6, scale: 10 };   // meters at canvas center, px per meter
+
+  function sizeCanvas() {
+    const r = simCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    if (simCanvas.width !== Math.round(r.width * dpr) || simCanvas.height !== Math.round(r.height * dpr)) {
+      simCanvas.width = Math.round(r.width * dpr);
+      simCanvas.height = Math.round(r.height * dpr);
+    }
+    return { w: r.width, h: r.height, dpr };
+  }
+
+  function worldToPx(x, y, w, h) {
+    return [w / 2 + (x - view.cx) * view.scale, h / 2 - (y - view.cy) * view.scale];
+  }
+  function pxToWorld(px, py, w, h) {
+    return [view.cx + (px - w / 2) / view.scale, view.cy - (py - h / 2) / view.scale];
+  }
+
+  function drawSim() {
+    if (!practice) return;
+    const { w, h, dpr } = sizeCanvas();
+    const ctx = simCanvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const css = getComputedStyle(document.documentElement);
+    const green = css.getPropertyValue("--fairway").trim();
+    const flag = css.getPropertyValue("--flag").trim();
+    const line = css.getPropertyValue("--line").trim();
+    const text = css.getPropertyValue("--text").trim();
+    const muted = css.getPropertyValue("--muted").trim();
+
+    // keep the cart in view: fit about 26 m across, recenter if it wanders off
+    view.scale = Math.min(w, h * 1.6) / 26;
+    const halfW = w / 2 / view.scale, halfH = h / 2 / view.scale;
+    if (Math.abs(fake.x - view.cx) > halfW * 0.8 || Math.abs(fake.y - view.cy) > halfH * 0.8) {
+      view.cx = fake.x; view.cy = fake.y;
+    }
+
+    // 5 m grid
+    ctx.strokeStyle = line; ctx.lineWidth = 1;
+    const x0 = Math.floor((view.cx - halfW) / 5) * 5, y0 = Math.floor((view.cy - halfH) / 5) * 5;
+    for (let gx = x0; gx <= view.cx + halfW; gx += 5) {
+      const [px] = worldToPx(gx, 0, w, h);
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+    }
+    for (let gy = y0; gy <= view.cy + halfH; gy += 5) {
+      const [, py] = worldToPx(0, gy, w, h);
+      ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
+    }
+
+    // you + follow distance ring
+    const you = fake.youLocal();
+    if (you) {
+      const [ux, uy] = worldToPx(you.x, you.y, w, h);
+      ctx.setLineDash([4, 4]); ctx.strokeStyle = muted;
+      ctx.beginPath(); ctx.arc(ux, uy, fake.followDist * view.scale, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = flag;
+      ctx.beginPath(); ctx.arc(ux, uy, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = text; ctx.font = "600 12px system-ui, sans-serif";
+      ctx.fillText("You", ux + 10, uy + 4);
+    }
+
+    // cart (0.6 m wide x 1 m long, drawn a bit bigger so it's visible)
+    const [cx, cy] = worldToPx(fake.x, fake.y, w, h);
+    const s = Math.max(view.scale, 12);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(fake.heading * Math.PI / 180);
+    ctx.fillStyle = green;
+    ctx.fillRect(-0.3 * s, -0.5 * s, 0.6 * s, 1.0 * s);
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(0, -0.42 * s); ctx.lineTo(0.18 * s, -0.12 * s); ctx.lineTo(-0.18 * s, -0.12 * s);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // wheel power bars (left and right motors)
+    const bars = [["L", fake.outL], ["R", fake.outR]];
+    bars.forEach(([label, v], i) => {
+      const bx = 12 + i * 18, bh = h - 36, by = 18, mid = by + bh / 2;
+      ctx.fillStyle = line; ctx.fillRect(bx, by, 10, bh);
+      ctx.fillStyle = v >= 0 ? green : flag;
+      const len = Math.abs(v) * bh / 2;
+      ctx.fillRect(bx, v >= 0 ? mid - len : mid, 10, len);
+      ctx.fillStyle = muted; ctx.font = "600 11px system-ui, sans-serif";
+      ctx.fillText(label, bx + 1, h - 6);
+    });
+
+    requestAnimationFrame(drawSim);
+  }
+
+  // tap / drag on the map to move "you" (practice, follow me)
+  let draggingYou = false;
+  function placeYou(e) {
+    const r = simCanvas.getBoundingClientRect();
+    const [x, y] = pxToWorld(e.clientX - r.left, e.clientY - r.top, r.width, r.height);
+    if (!fake.placed) {        // first tap with no GPS: drop the cart 12 m south of that spot
+      fake.lat0 = 0; fake.lon0 = 0; fake.placed = true;
+      fake.x = x; fake.y = y - 12; fake.heading = 0;
+      view.cx = x; view.cy = y - 6;
+    }
+    const ll = fake.toLatLon(x, y);
+    manualYou = true;
+    phonePos = { lat: ll.lat, lon: ll.lon, acc: 3, time: Date.now() };
+  }
+  simCanvas.addEventListener("pointerdown", e => {
+    if (mode !== 2) return;
+    draggingYou = true;
+    simCanvas.setPointerCapture(e.pointerId);
+    placeYou(e);
+  });
+  simCanvas.addEventListener("pointermove", e => { if (draggingYou) placeYou(e); });
+  ["pointerup", "pointercancel"].forEach(t => simCanvas.addEventListener(t, () => { draggingYou = false; }));
+
+  // ---------- Bluetooth send queue ----------
+  // Only one Bluetooth write can be in flight at a time.
+  // Stops and settings are queued and always sent; drive packets keep only the newest.
+  const reliableQueue = [];
+  let pendingFast = null, busy = false;
+
+  function send(text, reliable = false) {
+    if (practice) { fake.handle(text); return; }
+    if (!cmdChar) return;
+    if (reliable) reliableQueue.push(text);
+    else pendingFast = text;
+    pump();
+  }
+
+  function sendStopNow() {
+    if (practice) { fake.handle("M,0"); return; }
+    reliableQueue.length = 0;
+    pendingFast = null;
+    reliableQueue.push("M,0");
+    pump();
+  }
+
+  async function pump() {
+    if (busy || !cmdChar) return;
+    let text, reliable;
+    if (reliableQueue.length) { text = reliableQueue.shift(); reliable = true; }
+    else if (pendingFast) { text = pendingFast; pendingFast = null; reliable = false; }
+    else return;
+
+    busy = true;
+    try {
+      const data = enc.encode(text);
+      if (reliable) {
+        await (cmdChar.writeValueWithResponse ? cmdChar.writeValueWithResponse(data) : cmdChar.writeValue(data));
+      } else {
+        await (cmdChar.writeValueWithoutResponse ? cmdChar.writeValueWithoutResponse(data) : cmdChar.writeValue(data));
+      }
+    } catch (e) {
+      console.warn("Write failed:", e);
+    } finally {
+      busy = false;
+      if (reliableQueue.length || pendingFast) pump();
+    }
+  }
+
+  // ---------- connect ----------
+  async function connect() {
+    if (!navigator.bluetooth) return;
+    try {
+      device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [SERVICE] }],
+        optionalServices: [SERVICE]
+      });
+      device.addEventListener("gattserverdisconnected", onDisconnected);
+      await setupGatt();
+    } catch (e) {
+      if (e && e.name === "NotFoundError") return;   // user closed the picker
+      setConnText("Couldn’t connect. Make sure the cart is on and close by.");
+      console.warn(e);
+    }
+  }
+
+  async function setupGatt() {
+    setConnText("Connecting");
+    const server = await device.gatt.connect();
+    const svc = await server.getPrimaryService(SERVICE);
+    cmdChar = await svc.getCharacteristic(CMD);
+    const statusChar = await svc.getCharacteristic(STATUS);
+    statusChar.addEventListener("characteristicvaluechanged", e => parseStatus(dec.decode(e.target.value)));
+    await statusChar.startNotifications();
+
+    connected = true;
+    busy = false;
+    reliableQueue.length = 0;
+    pendingFast = null;
+    mode = 0;
+    send(`S,${speed}`, true);
+    send(`F,${followDist}`, true);
+    setConnText("Connected");
+    requestWakeLock();
+    render();
+  }
+
+  function onDisconnected() {
+    connected = false;
+    cmdChar = null;
+    status = null;
+    mode = 0;
+    resetJoy();
+    setConnText("Connection lost. Cart stopped.");
+    render();
+    reconnect();
+  }
+
+  async function reconnect() {
+    for (let i = 0; i < 5 && device && !connected; i++) {
+      await new Promise(r => setTimeout(r, 1500));
+      try { await setupGatt(); return; } catch {}
+    }
+    if (!connected) setConnText("Connection lost. Tap Connect to try again.");
+  }
+
+  // ---------- status from the cart ----------
+  // ST,<mode>,<battV>,<gpsFix>,<sats>,<distM>,<headingDeg>,<info>
+  function parseStatus(text) {
+    const f = text.trim().split(",");
+    if (f.length < 8 || f[0] !== "ST") return;
+    status = {
+      mode: parseInt(f[1], 10) || 0,
+      volts: parseFloat(f[2]) || 0,
+      gpsFix: f[3] === "1",
+      sats: parseInt(f[4], 10) || 0,
+      distance: parseFloat(f[5]),
+      heading: parseFloat(f[6]),
+      info: f[7]
+    };
+    // If the cart stopped itself (lost link, etc.), show stopped here too.
+    if (status.mode === 0 && mode !== 0 && Date.now() - lastModeChange > 1500) {
+      mode = 0;
+      resetJoy();
+    }
+    render();
+  }
+
+  const INFO = {
+    IDLE: "Stopped",
+    MAN: "Manual control",
+    GO: "Following you",
+    TURN: "Turning toward you",
+    WAIT: "Close enough, waiting",
+    NOGPS: "Cart GPS is still searching",
+    NOPHN: "Not getting your phone’s location",
+    WEAK: "Phone GPS is too rough to follow",
+    FAR: "Too far away, stopped",
+    NOCMP: "Compass not found",
+    CAL: "Calibrating compass",
+    NOLINK: "Connection lost, stopped"
+  };
+
+  // Rough LiFePO4 (12.8 V) charge from voltage
+  function batteryPercent(v) {
+    const t = [[10.0, 0], [12.0, 9], [12.5, 14], [12.8, 17], [12.9, 20], [13.0, 30],
+               [13.1, 40], [13.2, 70], [13.3, 90], [13.4, 99], [13.6, 100]];
+    if (v <= t[0][0]) return 0;
+    if (v >= t[t.length - 1][0]) return 100;
+    for (let i = 1; i < t.length; i++) {
+      if (v <= t[i][0]) {
+        const [v0, p0] = t[i - 1], [v1, p1] = t[i];
+        return Math.round(p0 + (v - v0) / (v1 - v0) * (p1 - p0));
+      }
+    }
+    return 100;
+  }
+
+  // ---------- modes ----------
+  function setMode(m) {
+    mode = m;
+    lastModeChange = Date.now();
+    resetJoy();
+    if (m === 0) sendStopNow();
+    else send(`M,${m}`, true);
+    if (m === 2) startGeo();
+    render();
+  }
+
+  // ---------- phone GPS ----------
+  function startGeo() {
+    if (geoWatch !== null || !navigator.geolocation) {
+      if (!navigator.geolocation) geoError = "This browser can’t share your location.";
+      return;
+    }
+    geoWatch = navigator.geolocation.watchPosition(
+      p => {
+        if (manualYou) return;   // practice: you placed yourself on the map
+        phonePos = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, time: Date.now() };
+        geoError = "";
+        render();
+      },
+      err => {
+        geoError = err.code === 1
+          ? "Allow location access for this site so the cart can find you."
+          : "Can’t get your location right now.";
+        render();
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+  }
+
+  // ---------- 20x per second send loop ----------
+  const dz = v => (Math.abs(v) < 0.08 ? 0 : v);
+
+  setInterval(() => {
+    if (!connected || document.hidden) return;
+    tick++;
+    if (mode === 1) {
+      // If these stop arriving, the cart stops itself within half a second.
+      send(`D,${Math.round(dz(joy.y) * 100)},${Math.round(dz(joy.x) * 100)}`);
+    } else {
+      if (tick % 10 === 0) send("H");
+      if (practice && manualYou && phonePos) phonePos.time = Date.now();
+      if (mode === 2 && phonePos &&
+          Date.now() - phonePos.time < 3000 &&
+          Date.now() - lastGpsSent >= 1000) {
+        send(`G,${phonePos.lat.toFixed(7)},${phonePos.lon.toFixed(7)},${phonePos.acc.toFixed(1)}`, true);
+        lastGpsSent = Date.now();
+      }
+    }
+  }, 50);
+
+  // Leaving the page or locking the screen stops the cart.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (connected && mode !== 0) setMode(0);
+    } else {
+      requestWakeLock();
+    }
+  });
+
+  async function requestWakeLock() {
+    try {
+      if ("wakeLock" in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => { wakeLock = null; });
+      }
+    } catch {}
+  }
+
+  // ---------- joystick ----------
+  const joyEl = $("joy"), knob = $("knob");
+  let activePointer = null;
+
+  function moveJoy(e) {
+    const r = joyEl.getBoundingClientRect();
+    const radius = r.width / 2;
+    const travel = radius - knob.offsetWidth / 2;
+    let dx = e.clientX - (r.left + radius);
+    let dy = e.clientY - (r.top + radius);
+    const d = Math.hypot(dx, dy);
+    if (d > travel && d > 0) { dx *= travel / d; dy *= travel / d; }
+    knob.classList.remove("returning");
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    joy.x = dx / travel;
+    joy.y = -dy / travel;
+  }
+
+  function resetJoy() {
+    activePointer = null;
+    joy.x = 0;
+    joy.y = 0;
+    knob.classList.add("returning");
+    knob.style.transform = "translate(0px, 0px)";
+  }
+
+  joyEl.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    activePointer = e.pointerId;
+    joyEl.setPointerCapture(e.pointerId);
+    moveJoy(e);
+  });
+  joyEl.addEventListener("pointermove", e => { if (e.pointerId === activePointer) moveJoy(e); });
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(t =>
+    joyEl.addEventListener(t, e => { if (e.pointerId === activePointer) resetJoy(); })
+  );
+
+  // ---------- controls ----------
+  $("connectBtn").addEventListener("click", connect);
+  $("practiceBtn").addEventListener("click", startPractice);
+  $("endPracticeBtn").addEventListener("click", () => { dlg.close(); endPractice(); });
+  $("manualBtn").addEventListener("click", () => setMode(1));
+  $("followBtn").addEventListener("click", () => setMode(2));
+  $("stopBtn").addEventListener("click", () => setMode(0));
+
+  const speedEl = $("speed");
+  speedEl.value = speed;
+  speedEl.addEventListener("input", () => { speed = +speedEl.value; render(); });
+  speedEl.addEventListener("change", () => {
+    store.set("speed", speed);
+    send(`S,${speed}`, true);
+  });
+
+  const dlg = $("settings");
+  $("settingsBtn").addEventListener("click", () => { render(); dlg.showModal(); });
+  $("doneBtn").addEventListener("click", () => dlg.close());
+
+  function changeFollow(delta) {
+    followDist = Math.min(15, Math.max(2, followDist + delta));
+    store.set("followDist", followDist);
+    send(`F,${followDist}`, true);
+    render();
+  }
+  $("fdMinus").addEventListener("click", () => changeFollow(-1));
+  $("fdPlus").addEventListener("click", () => changeFollow(1));
+
+  $("calBtn").addEventListener("click", () => {
+    calibrating = !calibrating;
+    send(calibrating ? "C,1" : "C,0", true);
+    render();
+  });
+  $("northBtn").addEventListener("click", () => {
+    send("N", true);
+    $("northBtn").textContent = "North set";
+    setTimeout(() => { $("northBtn").textContent = "Set north"; }, 2000);
+  });
+
+  // ---------- render ----------
+  function setConnText(t) { $("connText").textContent = t; }
+
+  function render() {
+    const supported = !!navigator.bluetooth;
+
+    $("dot").classList.toggle("on", connected);
+    $("connectBtn").hidden = connected;
+    $("connectBtn").disabled = !supported;
+    $("practiceBtn").hidden = connected;
+    $("simWrap").hidden = !practice;
+    document.body.classList.toggle("practice", practice);
+    $("endPracticeBtn").hidden = !practice;
+    $("manualBtn").disabled = !connected;
+    $("followBtn").disabled = !connected;
+    $("manualBtn").setAttribute("aria-pressed", mode === 1);
+    $("followBtn").setAttribute("aria-pressed", mode === 2);
+    $("speedOut").textContent = `${speed}%`;
+
+    // status card
+    if (!supported && !practice) {
+      setConnText("Bluetooth isn’t available here");
+      $("stateText").textContent = "Open this page in the Bluefy browser to drive the real cart. Safari can’t use Bluetooth, but practice mode works anywhere.";
+    } else if (connected && status) {
+      $("stateText").textContent = INFO[status.info] || status.info;
+    } else if (connected) {
+      $("stateText").textContent = "Waiting for the cart";
+    } else {
+      $("stateText").textContent = "Tap Connect to find your cart.";
+    }
+
+    const showMeta = connected && status;
+    $("batt").hidden = !showMeta;
+    $("meta").hidden = !showMeta;
+    if (showMeta) {
+      $("batt").textContent = `${batteryPercent(status.volts)}%`;
+      $("gpsText").textContent = status.gpsFix ? `${status.sats} satellites` : "No GPS fix";
+      $("voltText").textContent = `${status.volts.toFixed(1)} V`;
+    }
+
+    // stage
+    $("joy").hidden = mode !== 1;
+    $("follow").hidden = mode !== 2;
+    $("hint").hidden = mode !== 0;
+    $("hint").textContent = connected
+      ? "Choose manual or follow me to start driving."
+      : "Turn on the cart, then tap Connect.";
+
+    if (mode === 2) {
+      const d = status ? status.distance : -1;
+      if (d >= 0) {
+        $("distance").textContent = `${Math.round(d)} m`;
+        $("followText").textContent = `between you and the cart. It waits about ${followDist} m behind.`;
+      } else {
+        $("distance").textContent = "–";
+        $("followText").textContent = "Waiting for both GPS signals.";
+      }
+      const acc = $("accText");
+      acc.classList.toggle("alert", !!geoError);
+      acc.textContent = geoError || (phonePos ? `Phone GPS accurate to about ${Math.round(phonePos.acc)} m` : "");
+    }
+
+    // settings
+    $("fdText").textContent = `${followDist} m`;
+    $("calBtn").textContent = calibrating ? "Finish calibration" : "Calibrate compass";
+    $("calBtn").disabled = !connected;
+    $("northBtn").disabled = !connected;
+    $("headingText").textContent =
+      status && status.heading >= 0 ? `Cart heading: ${Math.round(status.heading)}°` : "";
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
